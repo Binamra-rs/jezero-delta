@@ -1,0 +1,9 @@
+[Unit]
+Description=Jezero Delta database backup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/jezero-delta/deploy
+ExecStart=/opt/jezero-delta/deploy/backup/backup.sh

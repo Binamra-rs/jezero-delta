@@ -1,0 +1,47 @@
+# Production stack on an always-on Linux VPS:
+#   docker compose --env-file .env up -d --build
+# Public traffic arrives only through Cloudflare Tunnel (no inbound ports needed).
+name: jezero
+
+services:
+  api:
+    build: { context: .., dockerfile: backend/Dockerfile }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      JEZERO_DATA_DIR: /data
+      JEZERO_DB_PATH: /state/jezero.sqlite3
+    volumes:
+      - ${JEZERO_HOST_DATA_DIR}:/data:ro
+      - state:/state          # waypoint database (SQLite)
+    ports:
+      - "127.0.0.1:8000:8000"   # local health checks only; public access is via the tunnel
+    networks: [internal, edge]
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "10" }
+
+  cloudflared:
+    image: cloudflare/cloudflared:2024.10.1
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    depends_on: [api]
+    networks: [edge]
+
+  # One-off raster processing:  docker compose --profile pipeline run --rm pipeline
+  pipeline:
+    profiles: ["pipeline"]
+    build: { context: .., dockerfile: pipeline/Dockerfile }
+    environment:
+      JEZERO_DATA_DIR: /data
+    volumes:
+      - ${JEZERO_HOST_DATA_DIR}:/data
+
+volumes:
+  state:
+
+networks:
+  internal: { internal: true }
+  edge: {}

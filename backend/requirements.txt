@@ -1,0 +1,13 @@
+# API runtime (rasterio wheels bundle GDAL)
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+gunicorn==23.*; platform_system != "Windows"
+pydantic==2.*
+numpy>=1.26,<3
+scipy>=1.11
+rasterio>=1.4,<2
+affine>=2.4
+pillow>=10
+pyyaml>=6
+httpx>=0.27
+sentry-sdk[fastapi]>=2

@@ -1,0 +1,21 @@
+# Render Blueprint — free API service (no credit card on the free instance type).
+# Render dashboard → New → Blueprint → pick this repository.
+# Fill the two `sync: false` variables when prompted. See docs/12-free-hosting.md.
+services:
+  - type: web
+    name: jezero-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      # URL of jezero-api-data.tar (backend/scripts/make_api_bundle.py), e.g. a GitHub Release asset
+      - key: JEZERO_DATA_URL
+        sync: false
+      # Exact frontend origin(s), comma separated, e.g. https://jezero-explorer.netlify.app
+      - key: JEZERO_CORS_ORIGINS
+        sync: false
+      - key: JEZERO_LOG_LEVEL
+        value: INFO

@@ -1,0 +1,5 @@
+# Missing map tiles (outside a layer's data) → one transparent tile. Rules only
+# apply when no real file matches, so existing tiles are served as-is.
+/map/tiles/*  /map/empty.webp  200
+# SPA fallback
+/*    /index.html   200

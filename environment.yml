@@ -1,0 +1,21 @@
+# One conda environment for the pipeline, the API and the tests (no Docker).
+#   conda env create -f environment.yml
+#   conda activate jezero
+name: jezero
+channels: [conda-forge]
+dependencies:
+  - python=3.12
+  - gdal>=3.8          # gdalwarp, gdal_translate (COG), gdaldem + osgeo bindings
+  - rasterio>=1.4
+  - pyproj>=3.6
+  - shapely>=2.0
+  - numpy
+  - scipy
+  - pyyaml
+  - pillow
+  - affine
+  - fastapi=0.115
+  - uvicorn
+  - pydantic=2
+  - httpx
+  - pytest

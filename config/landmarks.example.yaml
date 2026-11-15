@@ -1,0 +1,7 @@
+# Copy to config/landmarks.yaml to include landmark checks in pipeline step 07.
+# Coordinates: planetocentric latitude, east-positive longitude. Fill in from an
+# authoritative source and cite it here; the values below are placeholders.
+- name: Example landmark (replace)
+  lon_e: 77.4500
+  lat: 18.4450
+  source: "cite the publication / product the coordinate comes from"

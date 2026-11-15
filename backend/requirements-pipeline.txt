@@ -1,0 +1,4 @@
+# Raster pipeline (run inside the GDAL image; uses system GDAL CLI + osgeo bindings)
+-r requirements.txt
+pyproj>=3.6
+shapely>=2.0

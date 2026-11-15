@@ -1,0 +1,10 @@
+# Netlify (free plan, no credit card). See docs/12-free-hosting.md.
+[build]
+  base = "frontend"
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  VITE_STATIC_BASE = "/map"
+  # VITE_API_BASE = "https://jezero-api.onrender.com"   # set in Netlify → Site configuration → Environment variables

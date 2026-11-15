@@ -1,0 +1,9 @@
+data/
+deploy/.env
+.env
+node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/

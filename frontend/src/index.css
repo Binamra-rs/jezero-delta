@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body {
+  @apply bg-void font-sans text-ink antialiased;
+  overscroll-behavior: none;
+}
+.font-mono, .tabular-nums { font-variant-numeric: tabular-nums; }
+
+::selection { background: rgba(157, 194, 180, 0.22); }
+* { scrollbar-width: thin; scrollbar-color: #3c3f45 transparent; }
+
+@keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+@keyframes fadein { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.animate-fadein { animation: fadein 240ms ease-out both; }
+
+/* ---- form controls ---- */
+.jz-select {
+  @apply rounded-lg border border-rim2 bg-card px-2.5 py-1.5 text-xs text-ink transition-colors focus:border-signal/50 focus:outline-none;
+}
+.jz-input {
+  @apply rounded-lg border border-rim2 bg-card px-2.5 py-1.5 text-xs text-ink placeholder:text-faint transition-colors focus:border-signal/50 focus:outline-none;
+}
+.jz-range { -webkit-appearance: none; appearance: none; height: 3px; background: #3c3f45; border-radius: 2px; }
+.jz-range::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 999px; background: #c9c4bc; border: 2px solid #222428; cursor: pointer; }
+.jz-range::-moz-range-thumb { width: 10px; height: 10px; border-radius: 999px; background: #c9c4bc; border: 2px solid #222428; cursor: pointer; }
+
+/* ---- OpenLayers controls ---- */
+.ol-viewport { background: #1a1b1e; }
+.jz-zoom { position: absolute; top: 14px; left: 14px; display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 14px; background: rgba(42, 44, 49, 0.9); box-shadow: 0 4px 18px -8px rgba(0,0,0,.35); }
+.jz-zoom button {
+  width: 34px; height: 34px; margin: 0; border: 0; border-radius: 0; background: transparent;
+  color: #e2ded8; font: 400 17px/1 Inter, sans-serif; cursor: pointer;
+}
+.jz-zoom button + button { border-top: 1px solid #323439; }
+.jz-zoom button:hover, .jz-zoom button:focus-visible { outline: none; background: rgba(255,255,255,.05); }
+.jz-scale { position: absolute; left: 14px; bottom: 14px; padding: 3px 8px; border-radius: 10px; background: rgba(42, 44, 49, 0.85); }
+.jz-scale-inner { border: 1px solid #aaa49c; border-top: none; color: #e2ded8; font: 400 10px Inter, sans-serif;
+  text-align: center; margin: 1px; will-change: contents, width; }
+.ol-attribution { display: none; }

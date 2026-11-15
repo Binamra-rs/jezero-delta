@@ -1,0 +1,224 @@
+# =============================================================================
+# Jezero Delta Explorer — canonical project configuration
+# -----------------------------------------------------------------------------
+# This file is the single source of truth for the project CRS, the project
+# boundary, the authoritative dataset manifest, layer styling and routing
+# profiles. The backend, the pipeline and (via /api/v1/config) the frontend all
+# read from it. Change it only through a reviewed commit, and bump crs.version
+# whenever any CRS parameter changes (stored waypoints record the version).
+# =============================================================================
+
+project:
+  id: jezero-delta
+  title: Jezero Delta Explorer
+  # Scope: Jezero crater — the western delta, the crater floor, the full rim and
+  # the inlet (Neretva, Sava) and outlet (Pliva) valleys. Not Mars-wide.
+
+# -----------------------------------------------------------------------------
+# Canonical project CRS (brief §4.1) — see docs/02-crs.md for the rationale.
+# Equidistant cylindrical (Equirectangular) on the Mars IAU 2000 sphere, with
+# the standard parallel and central meridian placed on the delta (true scale
+# there). Over the crater-wide boundary (17.90–18.86° N) the east-west scale
+# error stays below 0.35 % (0 % on the delta). Kept unchanged from v1 so that
+# stored waypoints and the CRS version stay valid.
+# On a sphere planetocentric and planetographic latitude are identical.
+# -----------------------------------------------------------------------------
+crs:
+  id: JEZERO_DELTA_EQC
+  version: 1
+  body: Mars
+  # Sphere radius used by the USGS Mars 2020 CTX / HiRISE map products
+  # ("Radius A = Radius C = 3396190"). The pipeline FAILS if a source product
+  # declares a different body shape, rather than silently mixing them.
+  radius_m: 3396190.0
+  projection: equirectangular
+  central_meridian_deg_e: 77.40
+  standard_parallel_deg: 18.45
+  latitude_of_origin_deg: 0.0
+  false_easting_m: 0.0
+  false_northing_m: 0.0
+  linear_units: metre
+  latitude_type: planetocentric
+  longitude_direction: positive_east
+  longitude_domain: "0 to 360"
+  # PostGIS user-defined SRID for this CRS (inserted by migration 001).
+  postgis_srid: 949001
+
+# -----------------------------------------------------------------------------
+# Project boundary (brief §1, AC-01). Planetocentric degrees, east-positive.
+# Covers the whole of Jezero crater (Ø ≈ 45 km, centre ≈ 77.58° E 18.38° N):
+# western delta, crater floor, the complete rim with Perseverance's rim
+# campaign, and the Neretva / Sava inlet and Pliva outlet valleys. Every corner
+# lies inside the USGS CTX DEM and CTX orthomosaic (valid 77.00–78.58° E,
+# 17.58–19.29° N), so both base layers cover 100 % of the boundary; HiRISE and
+# THEMIS cover their own (smaller) footprints and are shown with coverage
+# outlines. The pipeline converts it into an exact projected rectangle
+# (snapped to the 20 m CTX DEM grid) and every raster is clipped to it.
+# -----------------------------------------------------------------------------
+boundary:
+  lon_min_e: 77.10
+  lon_max_e: 78.06
+  lat_min_n: 17.90
+  lat_max_n: 18.86
+  snap_m: 20.0
+
+# -----------------------------------------------------------------------------
+# Authoritative datasets (brief §2). Identifiers marked `verify: true` came
+# from public catalogue pages and MUST be confirmed against the downloaded
+# file's own metadata by pipeline/01_inventory.py. Never edit raw files.
+# Optional per-dataset keys:
+#   download_date: YYYY-MM-DD        sha256: <publisher checksum>
+#   source_latitude_type: planetographic|planetocentric   (REQUIRED if the
+#       file's CRS is ellipsoidal; read it from the product label)
+#   target_resolution_m: <m>  (never finer than native)   resampling: <gdal>
+#   assigned_crs + assigned_crs_justification  (only if the file has no CRS)
+# -----------------------------------------------------------------------------
+datasets:
+  ctx_ortho:
+    title: CTX Orthomosaic
+    role: imagery
+    kind: continuous_reflectance
+    expected_resolution_m: 5.0      # per the brief; see note
+    note: >
+      The brief specifies 5 m. The USGS Mars 2020 TRN CTX orthomosaic
+      (DOI 10.5066/P9GV1ND3) is documented at ~6 m/pixel. The inventory step
+      records the actual pixel size; the application always reports the
+      measured value, never the nominal one.
+    source: USGS Astrogeology Science Center
+    doi: 10.5066/P9GV1ND3
+    product_id: Mars 2020 Terrain Relative Navigation CTX Orthorectified Image Mosaic
+    units: DN (8-bit stretched reflectance, not calibrated I/F)
+    raw_filename: M20_JezeroCrater_CTXortho_mosaic_5m.tiff
+    verify: true
+  ctx_dem:
+    title: CTX DEM
+    role: elevation
+    kind: continuous
+    expected_resolution_m: 20.0
+    source: USGS Astrogeology Science Center
+    doi: 10.5066/P906QQT8
+    product_id: JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0
+    units: m (vertical datum to be confirmed from metadata; see vertical report)
+    raw_filename: M20_JezeroCrater_CTXDEM_20m.tiff
+    verify: true
+  hirise_dtm_1:
+    title: HiRISE DTM 1
+    role: elevation
+    kind: continuous
+    expected_resolution_m: 1.0
+    source: University of Arizona HiRISE Operations Center (PDS)
+    doi: null
+    product_id: DTEEC_045994_1985_046060_1985_U01
+    units: m
+    raw_filename: DTEEC_045994_1985_046060_1985_U01.IMG
+    verify: true
+  hirise_dtm_2:
+    title: HiRISE DTM 2
+    role: elevation
+    kind: continuous
+    expected_resolution_m: 1.0
+    source: University of Arizona HiRISE Operations Center (PDS)
+    doi: null
+    product_id: DTEEC_048842_1985_048908_1985_U01
+    units: m
+    raw_filename: DTEEC_048842_1985_048908_1985_U01.IMG
+    verify: true
+  themis_ti:
+    title: THEMIS Thermal Inertia
+    role: thermophysical
+    kind: continuous
+    expected_resolution_m: 100.0
+    source: Edwards & Buz (2021), Zenodo record 4931348
+    doi: 10.5281/zenodo.4931348
+    product_id: Jezero_Thermal_Inertia_v1
+    units: J m-2 K-1 s-1/2
+    # The record documents 0 as the null value. Enforced even if the GeoTIFF
+    # header does not declare it, so 0 is never displayed as a measurement.
+    nodata_override: 0
+    raw_filename: Jezero_Thermal_Inertia_v1.tiff
+    verify: true
+
+# -----------------------------------------------------------------------------
+# Map layers. `dataset` = authoritative source; `derived_from` = derivative.
+# Styling ranges are written into data/processed/catalog.json by the pipeline
+# (2nd–98th percentile inside the boundary) unless fixed here.
+# -----------------------------------------------------------------------------
+layers:
+  - {id: ctx_ortho,          title: CTX Orthomosaic,         dataset: ctx_ortho,    style: gray,      unit: DN,    default_visible: true,  default_opacity: 1.0, group: imagery}
+  - {id: ctx_dem,            title: CTX Elevation,           dataset: ctx_dem,      style: elevation, unit: m,     default_visible: false, default_opacity: 0.7, group: elevation}
+  - {id: hirise_dtm_1,       title: HiRISE DTM 1,            dataset: hirise_dtm_1, style: elevation, unit: m,     default_visible: false, default_opacity: 0.8, group: elevation}
+  - {id: hirise_dtm_2,       title: HiRISE DTM 2,            dataset: hirise_dtm_2, style: elevation, unit: m,     default_visible: false, default_opacity: 0.8, group: elevation}
+  - {id: themis_ti,          title: THEMIS Thermal Inertia,  dataset: themis_ti,    style: thermal,   unit: "J m⁻² K⁻¹ s⁻½", default_visible: false, default_opacity: 0.6, group: thermophysical}
+  - {id: slope_ctx,          title: Slope (CTX 20 m),        derived_from: ctx_dem,      derivative: slope,     style: slope,     unit: "°", default_visible: false, default_opacity: 0.7, group: derived, range: [0, 35]}
+  - {id: slope_hirise_1,     title: Slope (HiRISE DTM 1),    derived_from: hirise_dtm_1, derivative: slope,     style: slope,     unit: "°", default_visible: false, default_opacity: 0.7, group: derived, range: [0, 35]}
+  - {id: slope_hirise_2,     title: Slope (HiRISE DTM 2),    derived_from: hirise_dtm_2, derivative: slope,     style: slope,     unit: "°", default_visible: false, default_opacity: 0.7, group: derived, range: [0, 35]}
+  - {id: tri_ctx,            title: Roughness TRI (CTX 20 m),derived_from: ctx_dem,      derivative: tri,       style: roughness, unit: m,   default_visible: false, default_opacity: 0.7, group: derived}
+
+# Terrain-derivative parameters (brief §6). Documented in docs/04.
+derivatives:
+  slope: {algorithm: horn_1981, units: degrees, edge_handling: nodata}
+  hillshade: {algorithm: lambert_horn_gradient, azimuth_deg: 315.0, altitude_deg: 45.0, z_factor: 1.0}
+  tri: {algorithm: riley_1999, units: m}
+
+# -----------------------------------------------------------------------------
+# Routing (brief §7). These are PLANNING parameters chosen for exploration
+# studies. They are NOT certified rover mobility limits. See docs/05.
+# Cost: C = d × [1 + α·f(s) + β·g(r) + γu·max(grade,0) + γd·max(−grade,0)]
+#   f(s) = (tan s / tan s_max)^p   g(r) = r / r_ref
+# -----------------------------------------------------------------------------
+routing:
+  max_window_cells: 1500000
+  corridor_margin_m: 1500
+  corridor_margin_fraction: 0.5
+  default_profile: balanced
+  profiles:
+    cautious:
+      label: Cautious
+      description: Strong slope avoidance; blocks local slopes above 15°.
+      max_slope_deg: 15.0
+      max_edge_grade_deg: 15.0
+      alpha: 6.0
+      slope_exponent: 2.0
+      beta: 1.0
+      roughness_ref_m: 2.0
+      max_roughness_m: null
+      gamma_up: 4.0
+      gamma_down: 1.0
+    balanced:
+      label: Balanced
+      description: Moderate slope penalty; blocks local slopes above 20°.
+      max_slope_deg: 20.0
+      max_edge_grade_deg: 20.0
+      alpha: 3.0
+      slope_exponent: 2.0
+      beta: 0.5
+      roughness_ref_m: 2.0
+      max_roughness_m: null
+      gamma_up: 2.0
+      gamma_down: 0.5
+    direct:
+      label: Direct
+      description: Light slope penalty; blocks local slopes above 25°.
+      max_slope_deg: 25.0
+      max_edge_grade_deg: 25.0
+      alpha: 1.0
+      slope_exponent: 2.0
+      beta: 0.0
+      roughness_ref_m: 2.0
+      max_roughness_m: null
+      gamma_up: 1.0
+      gamma_down: 0.0
+
+# Tile grid (brief §5). Built from the boundary in the project CRS.
+tiles:
+  tile_size_px: 256
+  finest_resolution_m: 0.5   # one over-zoom level beyond ~1 m HiRISE
+
+# NASA Mars 2020 raw-image gallery (public NASA/JPL feed, proxied by the API).
+# Sol presets appear as quick filters in the gallery. Fill them from mission
+# records (e.g. the Perseverance "Where is the rover" traverse / campaign
+# reports) — do not guess. Leave the list empty to show only manual filters.
+raw_images:
+  sol_presets: []
+  # Example format:
+  # - {label: "Delta front campaign", sol_min: 0, sol_max: 0, source: "cite the mission record"}
